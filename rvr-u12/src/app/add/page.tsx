@@ -1,204 +1,156 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
-import type { HomeAway } from '@/lib/types';
+import type { MatchRow } from '@/lib/types';
 
-type IdName = { id: string; name: string };
+function formatDate(iso: string) {
+  try {
+    return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  } catch {
+    return iso;
+  }
+}
 
-export default function AddMatch() {
-  const router = useRouter();
+function outcome(us: number, them: number): 'W' | 'D' | 'L' {
+  if (us > them) return 'W';
+  if (us === them) return 'D';
+  return 'L';
+}
 
-  const [opponents, setOpponents] = useState<IdName[]>([]);
-  const [leagues, setLeagues] = useState<IdName[]>([]);
-  const [venues, setVenues] = useState<IdName[]>([]);
+export default function Home() {
+  const [rows, setRows] = useState<MatchRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-
-  const [date, setDate] = useState<string>(() => new Date().toISOString().slice(0,10));
-  const [homeAway, setHomeAway] = useState<HomeAway>('Home');
-  const [isFriendly, setIsFriendly] = useState<boolean>(false);
-  const [teamSize, setTeamSize] = useState<9|11>(9);
-  const [opponentId, setOpponentId] = useState<string>('');
-  const [leagueId, setLeagueId] = useState<string>('');
-  const [venueId, setVenueId] = useState<string>('');
-  const [ourScore, setOurScore] = useState<number>(0);
-  const [theirScore, setTheirScore] = useState<number>(0);
-  const [notes, setNotes] = useState<string>('');
 
   useEffect(() => {
     const load = async () => {
-      const [{ data: opps }, { data: leag }, { data: vens }] = await Promise.all([
-        supabase.from('opponents').select('id,name').order('name', { ascending: true }),
-        supabase.from('leagues').select('id,name').order('name', { ascending: true }),
-        supabase.from('venues').select('id,name').order('name', { ascending: true }),
-      ]);
-      setOpponents((opps ?? []) as IdName[]);
-      setLeagues((leag ?? []) as IdName[]);
-      setVenues((vens ?? []) as IdName[]);
+      const { data, error } = await supabase
+        .from('matches')
+        .select(`
+          id, date, our_score, their_score, home_away, is_friendly,
+          league:leagues(name),
+          opponent:opponents(name),
+          venue:venues(name)
+        `)
+        .order('date', { ascending: false });
+      if (!error && data) setRows(data as unknown as MatchRow[]);
       setLoading(false);
     };
     load();
   }, []);
 
-  const canSave = useMemo(() => {
-    return !!date && !!homeAway && !!opponentId && (!!isFriendly || !!leagueId) && !!venueId;
-  }, [date, homeAway, opponentId, isFriendly, leagueId, venueId]);
+  const stats = useMemo(() => {
+    const played = rows.length;
+    let wins = 0, draws = 0, losses = 0, gf = 0, ga = 0;
+    rows.forEach(m => {
+      const us = m.our_score ?? 0;
+      const them = m.their_score ?? 0;
+      gf += us; ga += them;
+      if (us > them) wins++;
+      else if (us === them) draws++;
+      else losses++;
+    });
+    const winRate = played ? Math.round((wins / played) * 100) : 0;
+    const gd = gf - ga;
+    return { played, wins, draws, losses, gf, ga, gd, winRate };
+  }, [rows]);
 
-  async function onSave() {
-    if (!canSave) return alert('Please fill date, home/away, opponent, venue, and league (for league matches).');
-    setSaving(true);
-    // If you use teams, pick the first team for now; adjust as needed later.
-    const { data: team } = await supabase.from('teams').select('id').limit(1).maybeSingle();
-    const teamId = team?.id ?? null;
-
-    const { error } = await supabase.from('matches').insert([{
-      team_id: teamId,
-      date,
-      opponent_id: opponentId,
-      home_away: homeAway,
-      venue_id: venueId,
-      league_id: isFriendly ? null : leagueId,
-      is_friendly: isFriendly,
-      team_size: teamSize,
-      our_score: ourScore,
-      their_score: theirScore,
-      notes,
-    }]);
-
-    setSaving(false);
-    if (error) {
-      alert(`Could not save: ${error.message}`);
-      return;
-    }
-    router.push('/');
-  }
-
-  if (loading) {
-    return <main className="p-6 max-w-xl mx-auto">Loading…</main>;
-  }
+  const leagueForm = useMemo(() => {
+    const leagueOnly = rows.filter(r => !r.is_friendly);
+    const sortedAsc = [...leagueOnly].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const last5 = sortedAsc.slice(-5);
+    return last5.map(m => outcome(m.our_score ?? 0, m.their_score ?? 0));
+  }, [rows]);
 
   return (
-    <main className="p-6 max-w-xl mx-auto">
-      <h1 className="text-xl font-bold mb-4">Record Match</h1>
+    <main className="p-6 max-w-3xl mx-auto">
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-xl font-bold">RVR U12 Scorekeeper</h1>
+        <Link
+          href="/add"
+          className="rounded-lg px-3 py-2 text-white"
+          style={{ background: '#ff6b00' }}
+        >
+          Record Match
+        </Link>
+      </div>
 
-      <Field label="Date">
-        <input
-          type="date"
-          className="w-full rounded border p-2"
-          value={date}
-          onChange={e => setDate(e.target.value)}
-        />
-      </Field>
+      <div className="mt-4 flex flex-wrap items-center gap-2 text-[13px]">
+        <Bubble label="Played" value={stats.played} />
+        <Bubble label="W-D-L" value={`${stats.wins}-${stats.draws}-${stats.losses}`} />
+        <Bubble label="GF/GA" value={`${stats.gf}/${stats.ga}`} />
+        <Bubble label="GD" value={stats.gd} />
+        <Bubble label="Win %" value={`${stats.winRate}`} />
+      </div>
 
-      <Field label="Home / Away">
-        <div className="flex gap-2">
-          <Toggle active={homeAway === 'Home'} onClick={() => setHomeAway('Home')}>Home</Toggle>
-          <Toggle active={homeAway === 'Away'} onClick={() => setHomeAway('Away')}>Away</Toggle>
+      {leagueForm.length > 0 && (
+        <div className="mt-3 flex items-center gap-2">
+          <span className="text-xs text-slate-500">League form</span>
+          <div className="flex items-center gap-1.5">
+            {leagueForm.map((r, i) => <FormDot key={i} r={r} />)}
+          </div>
         </div>
-      </Field>
-
-      <Field label="Match Type">
-        <div className="flex gap-2">
-          <Toggle active={!isFriendly} onClick={() => setIsFriendly(false)}>League</Toggle>
-          <Toggle active={isFriendly} onClick={() => setIsFriendly(true)}>Friendly</Toggle>
-        </div>
-      </Field>
-
-      <Field label="Team Size">
-        <div className="flex gap-2">
-          <Toggle active={teamSize === 9} onClick={() => setTeamSize(9)}>9-a-side</Toggle>
-          <Toggle active={teamSize === 11} onClick={() => setTeamSize(11)}>11-a-side</Toggle>
-        </div>
-      </Field>
-
-      <Field label="Opponent">
-        <select className="w-full rounded border p-2" value={opponentId} onChange={e => setOpponentId(e.target.value)}>
-          <option value="">Select opponent…</option>
-          {opponents.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
-        </select>
-      </Field>
-
-      {!isFriendly && (
-        <Field label="League">
-          <select className="w-full rounded border p-2" value={leagueId} onChange={e => setLeagueId(e.target.value)}>
-            <option value="">Select league…</option>
-            {leagues.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-          </select>
-        </Field>
       )}
 
-      <Field label="Venue">
-        <select className="w-full rounded border p-2" value={venueId} onChange={e => setVenueId(e.target.value)}>
-          <option value="">Select venue…</option>
-          {venues.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
-        </select>
-      </Field>
-
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Our Score">
-          <Stepper value={ourScore} inc={() => setOurScore(v => v + 1)} dec={() => setOurScore(v => Math.max(0, v - 1))} />
-        </Field>
-        <Field label="Their Score">
-          <Stepper value={theirScore} inc={() => setTheirScore(v => v + 1)} dec={() => setTheirScore(v => Math.max(0, v - 1))} />
-        </Field>
-      </div>
-
-      <Field label="Notes">
-        <textarea className="w-full rounded border p-2" rows={3} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional…" />
-      </Field>
-
-      <div className="mt-4 flex gap-2">
-        <button
-          onClick={onSave}
-          disabled={!canSave || saving}
-          className="rounded px-4 py-2 text-white disabled:opacity-60"
-          style={{ background: '#0d6b3f' }}
-        >
-          {saving ? 'Saving…' : 'Save'}
-        </button>
-        <button
-          onClick={() => history.back()}
-          className="rounded px-4 py-2 border"
-        >
-          Cancel
-        </button>
-      </div>
+      {loading ? (
+        <div className="mt-4 text-sm text-slate-500">Loading…</div>
+      ) : rows.length === 0 ? (
+        <div className="mt-4 text-sm text-slate-500">No matches yet.</div>
+      ) : (
+        <div className="mt-4 space-y-2">
+          {rows.map(m => (
+            <div key={m.id} className="flex items-center justify-between rounded-lg border p-3">
+              <div className="text-sm">
+                <div className="font-medium">
+                  {formatDate(m.date)} · {m.home_away}
+                </div>
+                <div className="text-slate-600">
+                  vs {m.opponent?.name ?? '—'} @ {m.venue?.name ?? '—'}
+                </div>
+                {!m.is_friendly && m.league?.name ? (
+                  <div className="text-xs text-slate-500 mt-0.5">{m.league.name}</div>
+                ) : (
+                  <div className="text-xs text-slate-500 mt-0.5">Friendly</div>
+                )}
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-bold">
+                  {(m.our_score ?? 0)}–{(m.their_score ?? 0)}
+                </div>
+                <div className="mt-1 flex justify-end">
+                  <Dot r={outcome(m.our_score ?? 0, m.their_score ?? 0)} />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </main>
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Bubble({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="mb-3">
-      <div className="text-xs text-slate-600 mb-1">{label}</div>
-      {children}
-    </div>
-  );
-}
-
-function Toggle({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      className="rounded px-3 py-2 border"
-      style={{
-        background: active ? '#ff6b00' : 'white',
-        color: active ? 'white' : '#0b1f3b',
-        borderColor: active ? '#ff6b00' : '#dce3ea'
-      }}
+    <div
+      className="rounded-full px-3 py-2 border bg-white/80"
+      style={{ borderColor: '#eef2f7' }}
     >
-      {children}
-    </button>
+      <span className="font-semibold" style={{ color: '#0d6b3f' }}>{value}</span>
+      <span className="text-slate-500 ml-1">{label}</span>
+    </div>
   );
 }
 
-function Stepper({ value, inc, dec }: { value: number; inc: () => void; dec: () => void }) {
+function FormDot({ r }: { r: 'W' | 'D' | 'L' }) {
+  const bg = r === 'W' ? '#16a34a' : r === 'D' ? '#f59e0b' : '#ef4444';
   return (
-    <div className="flex items-center gap-2">
-      <button onClick={dec} className="h-10 w-10 rounded border">−</button>
-      <div className="text-xl font-bold w-10 text-center">{value}</div>
-      <button onClick={inc} className="h-10 w-10 rounded border">+</button>
+    <div title={r} className="h-6 w-6 rounded-full text-[11px] text-white flex items-center justify-center" style={{ background: bg }}>
+      {r}
     </div>
   );
+}
+
+function Dot({ r }: { r: 'W' | 'D' | 'L' }) {
+  const bg = r === 'W' ? '#16a34a' : r === 'D' ? '#f59e0b' : '#ef4444';
+  return <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: bg }} />;
 }
