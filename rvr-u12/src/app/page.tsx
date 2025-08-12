@@ -1,4 +1,3 @@
-cat > rvr-u12/src/app/page.tsx << 'EOF'
 'use client';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -34,9 +33,3 @@ export default function Home() {
     </main>
   );
 }
-EOF
-
-cd rvr-u12
-git add src/app/page.tsx
-git commit -m "fix: remove any from page.tsx and type matches"
-git push
