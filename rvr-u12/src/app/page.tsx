@@ -89,19 +89,20 @@ export default function Home() {
   return (
     <main className="mx-auto max-w-4xl p-4 space-y-6">
       {/* Header */}
-      <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">RVR U12 Scorekeeper</h1>
-        <nav className="flex items-center gap-3">
-          <Link href="/" className="text-sm underline-offset-4 hover:underline">Home</Link>
-          <Link
-            href="/record-match"
-            className="rounded-xl bg-orange-500 px-5 py-2 text-white hover:opacity-90"
-          >
-            Record Match
-          </Link>
-        </nav>
-      </header>
-
+<header className="flex items-center justify-between">
+  <h1 className="text-2xl font-semibold">RVR U12 Scorekeeper</h1>
+  <nav className="flex items-center gap-3">
+    <Link href="/" className="text-sm underline-offset-4 hover:underline">
+      Home
+    </Link>
+    <Link
+      href="/record-match"
+      className="rounded-xl bg-orange-500 px-5 py-2 text-white hover:opacity-90"
+    >
+      Record Match
+    </Link>
+  </nav>
+</header>
       {/* Quick Stats */}
       <section className="rounded-2xl border bg-white p-4 shadow-sm">
         <h2 className="mb-3 text-base font-semibold">Quick stats</h2>
