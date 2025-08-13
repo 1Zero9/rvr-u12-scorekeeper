@@ -1,21 +1,48 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import GoalsAssistsPanel from "../../components/GoalsAssistsPanel";
 import { GoalEvent, Player } from "../../types/match";
-import { HOME_TEAM_ID, AWAY_TEAM_ID, mockPlayers } from "../../lib/mockData";
 import { createMatch } from "../../lib/db";
+import { supabase } from "../../lib/supabaseClient";
+
+const OUR_TEAM_ID = process.env.NEXT_PUBLIC_OUR_TEAM_ID!;
 
 export default function Page() {
-  const homeTeamId = HOME_TEAM_ID;
-  const awayTeamId = AWAY_TEAM_ID;
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [loadingPlayers, setLoadingPlayers] = useState(true);
 
-  const allPlayers: Player[] = useMemo(() => mockPlayers, []);
+  // form state
   const [goals, setGoals] = useState<GoalEvent[]>([]);
   const [date, setDate] = useState("");
   const [opponent, setOpponent] = useState("");
   const [homeAway, setHomeAway] = useState<"home" | "away">("home");
   const [saving, setSaving] = useState(false);
+
+  // fetch players from Supabase (our team only)
+  useEffect(() => {
+    (async () => {
+      setLoadingPlayers(true);
+      const { data, error } = await supabase
+        .from("players")
+        .select("id,name,shirt,team_id")
+        .eq("team_id", OUR_TEAM_ID)
+        .order("shirt", { ascending: true });
+      if (error) {
+        console.error(error);
+        setPlayers([]);
+      } else {
+        const mapped: Player[] = (data ?? []).map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          teamId: p.team_id,
+          shirtNumber: p.shirt ?? undefined,
+        }));
+        setPlayers(mapped);
+      }
+      setLoadingPlayers(false);
+    })();
+  }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +51,7 @@ export default function Page() {
 
     try {
       setSaving(true);
-      // Step 1: create the match only (we'll add goals next)
+      // Step 1: create match row only (we’ll add goals/scores next step)
       const matchId = await createMatch({
         date,
         opponentName: opponent,
@@ -33,7 +60,6 @@ export default function Page() {
 
       console.log("Created match:", matchId);
       alert("Match saved!");
-      // Optionally reset form
       setGoals([]);
       setOpponent("");
       setDate("");
@@ -51,11 +77,10 @@ export default function Page() {
         <div>
           <h1 className="text-2xl font-semibold">Record Match</h1>
           <p className="text-sm text-gray-500">
-            Add match info, then goals and assists. (Goals save coming next.)
+            Add match info, then goals and assists.
           </p>
         </div>
 
-        {/* Match Info */}
         <section className="rounded-2xl border bg-white p-4 shadow-sm">
           <h2 className="mb-3 text-base font-semibold">Match Info</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -73,7 +98,7 @@ export default function Page() {
               <input
                 type="text"
                 className="w-full rounded-md border px-3 py-2"
-                placeholder="e.g. St. Mary’s U12"
+                placeholder="e.g. Swords Celtic"
                 value={opponent}
                 onChange={(e) => setOpponent(e.target.value)}
               />
@@ -92,16 +117,19 @@ export default function Page() {
           </div>
         </section>
 
-        {/* Goals & Assists (UI only for now) */}
         <section className="rounded-2xl border bg-white p-4 shadow-sm">
           <h2 className="mb-3 text-base font-semibold">Goals &amp; Assists</h2>
-          <GoalsAssistsPanel
-            homeTeamId={homeTeamId}
-            awayTeamId={awayTeamId}
-            allPlayers={allPlayers}
-            value={goals}
-            onChange={setGoals}
-          />
+          {loadingPlayers ? (
+            <p className="text-sm text-gray-500">Loading players…</p>
+          ) : (
+            <GoalsAssistsPanel
+              homeTeamId={OUR_TEAM_ID}
+              awayTeamId={"opponent-team"} // placeholder; scorer team inferred by player.teamId
+              allPlayers={players}
+              value={goals}
+              onChange={setGoals}
+            />
+          )}
         </section>
 
         <div className="flex justify-end">
