@@ -66,13 +66,14 @@ export default function Home() {
     <main className="p-6 max-w-3xl mx-auto">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl font-bold">RVR U12 Scorekeeper</h1>
+        
         <Link
-          href="/add"
-          className="rounded-lg px-3 py-2 text-white"
-          style={{ background: '#ff6b00' }}
-        >
-          Record Match
-        </Link>
+  href="/record-match"
+  prefetch={false}
+  className="inline-block rounded-xl bg-orange-500 px-5 py-3 text-white font-semibold hover:opacity-90"
+>
+  Record Match
+</Link>
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2 text-[13px]">
