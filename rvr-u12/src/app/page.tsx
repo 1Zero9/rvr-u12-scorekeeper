@@ -52,13 +52,16 @@ export default function Home() {
     <main className="p-6 max-w-3xl mx-auto">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl font-bold">RVR U12 Scorekeeper</h1>
-        <Link
-          href="/add"
-          className="rounded-lg px-3 py-2 text-white"
-          style={{ background: '#ff6b00' }}
-        >
-          Record Match
-        </Link>
+
+
+<Link
+  href="/record-match"
+  className="rounded-lg px-3 py-2 text-white"
+  style={{ background: '#ff6b00' }}
+>
+  Record Match
+</Link>
+
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2 text-[13px]">
