@@ -25,9 +25,10 @@ export default function Page() {
     alert("Match saved (see console).");
   };
 
-  return (
-    <form onSubmit={onSubmit} className="max-w-4xl mx-auto p-4 space-y-4">
-      <header>
+ return (
+  <form onSubmit={onSubmit} className="max-w-4xl mx-auto p-4 space-y-4">
+    <p className="text-xs text-gray-500">/record-match loaded ✅</p>
+    <header>
         <h1 className="text-2xl font-semibold">Record Match</h1>
         <p className="text-sm text-gray-500">
           Add goals & assists. Own goals pull the scorer from the opposite team.
