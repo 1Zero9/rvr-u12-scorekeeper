@@ -1,5 +1,4 @@
 "use client";
-
 export default function Page() {
   return (
     <main style={{ padding: 16 }}>
@@ -8,6 +7,3 @@ export default function Page() {
     </main>
   );
 }
-
-
-
