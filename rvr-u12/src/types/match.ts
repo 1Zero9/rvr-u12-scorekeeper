@@ -1,4 +1,3 @@
-// src/types/match.ts
 export type TeamSide = "home" | "away";
 
 export interface Player {
@@ -9,8 +8,8 @@ export interface Player {
 }
 
 export interface GoalEvent {
-  id: string;
-  minute: number;
+  id: string;       // uuid
+  minute: number;   // 0–130
   teamSide: TeamSide;
   scorerId: string;
   assistId?: string;
