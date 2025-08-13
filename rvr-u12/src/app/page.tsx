@@ -4,13 +4,23 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../lib/supabaseClient";
 
+type RawMatchRow = {
+  id: string;
+  date: string;
+  our_score: number | null;
+  their_score: number | null;
+  opponent_id: string | null;
+  // Supabase may return array or object depending on FK config:
+  opponents?: { name: string } | { name: string }[] | null;
+};
+
 type MatchRow = {
   id: string;
   date: string;
   our_score: number | null;
   their_score: number | null;
   opponent_id: string | null;
-  opponents?: { name: string } | null;
+  opponent_name: string;
 };
 
 export default function Home() {
@@ -21,14 +31,28 @@ export default function Home() {
     (async () => {
       const { data, error } = await supabase
         .from("matches")
-        .select("id,date,our_score,their_score,opponent_id,opponents!inner(name)")
+        .select(
+          "id,date,our_score,their_score,opponent_id,opponents!inner(name)"
+        )
         .order("date", { ascending: false })
         .limit(10);
 
       if (error) {
         console.error(error);
       } else {
-        setMatches(data as MatchRow[]);
+        const rows = (data as RawMatchRow[]).map((r) => {
+          const opp =
+            Array.isArray(r.opponents) ? r.opponents[0] ?? null : r.opponents ?? null;
+          return {
+            id: r.id,
+            date: r.date,
+            our_score: r.our_score,
+            their_score: r.their_score,
+            opponent_id: r.opponent_id,
+            opponent_name: opp?.name ?? "Opponent",
+          } as MatchRow;
+        });
+        setMatches(rows);
       }
       setLoading(false);
     })();
@@ -57,9 +81,7 @@ export default function Home() {
             {matches.map((m) => (
               <li key={m.id} className="flex items-center justify-between py-2">
                 <div className="text-sm">
-                  <div className="font-medium">
-                    {m.opponents?.name ?? "Opponent"}
-                  </div>
+                  <div className="font-medium">{m.opponent_name}</div>
                   <div className="text-gray-500">{m.date}</div>
                 </div>
                 <div className="text-sm font-semibold">
