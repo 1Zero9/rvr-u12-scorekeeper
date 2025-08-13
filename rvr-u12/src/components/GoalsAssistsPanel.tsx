@@ -85,21 +85,23 @@ export default function GoalsAssistsPanel({
   const label = (p: Player) => (p.shirtNumber ? `${p.shirtNumber} · ${p.name}` : p.name);
 
   return (
-    <div className="mt-4 border rounded-xl p-4 space-y-4">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Goals &amp; Assists</h3>
+        <p className="text-sm text-gray-500">
+          Add each goal with minute, scorer and optional assist. Toggle OG for own goals.
+        </p>
         <button
           type="button"
           onClick={addGoal}
-          className="text-sm border px-3 py-1.5 rounded-md hover:bg-gray-50"
+          className="rounded-lg border bg-white px-3 py-1.5 text-sm font-medium hover:bg-gray-50"
         >
           + Add Goal
         </button>
       </div>
 
       {(!value || value.length === 0) && (
-        <p className="text-sm text-gray-500">
-          No goals yet. Click <span className="font-medium">Add Goal</span> to start.
+        <p className="rounded-lg border border-dashed bg-gray-50 p-3 text-sm text-gray-500">
+          No goals yet. Click <span className="font-medium">+ Add Goal</span> to start.
         </p>
       )}
 
@@ -110,19 +112,14 @@ export default function GoalsAssistsPanel({
           const assistDisabled = ev.ownGoal;
 
           return (
-            <div
-              key={ev.id}
-              className="grid grid-cols-12 gap-3 items-end border rounded-lg p-3"
-            >
+            <div key={ev.id} className="grid grid-cols-12 items-end gap-3 rounded-xl border p-3">
               {/* Team credited */}
               <div className="col-span-12 sm:col-span-2">
-                <label className="block text-sm font-medium mb-1">Team</label>
+                <label className="mb-1 block text-sm font-medium">Team</label>
                 <select
-                  className="w-full border rounded-md px-2 py-1.5"
+                  className="w-full rounded-md border px-2 py-2"
                   value={ev.teamSide}
-                  onChange={(e) =>
-                    updateAt(idx, { teamSide: e.target.value as TeamSide })
-                  }
+                  onChange={(e) => updateAt(idx, { teamSide: e.target.value as TeamSide })}
                 >
                   <option value="home">Home</option>
                   <option value="away">Away</option>
@@ -131,17 +128,15 @@ export default function GoalsAssistsPanel({
 
               {/* Minute */}
               <div className="col-span-6 sm:col-span-2">
-                <label className="block text-sm font-medium mb-1">Minute</label>
+                <label className="mb-1 block text-sm font-medium">Minute</label>
                 <input
                   type="number"
                   min={0}
                   max={130}
-                  className="w-full border rounded-md px-2 py-1.5"
+                  className="w-full rounded-md border px-2 py-2"
                   value={Number.isFinite(ev.minute) ? ev.minute : 0}
                   onChange={(e) =>
-                    updateAt(idx, {
-                      minute: Math.max(0, Math.min(130, Number(e.target.value))),
-                    })
+                    updateAt(idx, { minute: Math.max(0, Math.min(130, Number(e.target.value))) })
                   }
                   placeholder="e.g. 23"
                 />
@@ -149,13 +144,11 @@ export default function GoalsAssistsPanel({
 
               {/* Scorer */}
               <div className="col-span-12 sm:col-span-4">
-                <label className="block text-sm font-medium mb-1">
-                  {ev.ownGoal
-                    ? "Scorer (defender who scored OG)"
-                    : "Scorer"}
+                <label className="mb-1 block text-sm font-medium">
+                  {ev.ownGoal ? "Scorer (defender who scored OG)" : "Scorer"}
                 </label>
                 <select
-                  className="w-full border rounded-md px-2 py-1.5"
+                  className="w-full rounded-md border px-2 py-2"
                   value={ev.scorerId}
                   onChange={(e) => updateAt(idx, { scorerId: e.target.value })}
                 >
@@ -169,22 +162,13 @@ export default function GoalsAssistsPanel({
               </div>
 
               {/* Assist */}
-              <div
-                className={`col-span-12 sm:col-span-3 ${
-                  assistDisabled ? "opacity-50" : ""
-                }`}
-              >
-                <label className="block text-sm font-medium mb-1">
-                  Assist (optional)
-                </label>
+              <div className={`col-span-12 sm:col-span-3 ${assistDisabled ? "opacity-50" : ""}`}>
+                <label className="mb-1 block text-sm font-medium">Assist (optional)</label>
                 <select
-                  className="w-full border rounded-md px-2 py-1.5"
+                  className="w-full rounded-md border px-2 py-2"
                   value={ev.assistId ?? ""}
                   onChange={(e) =>
-                    updateAt(idx, {
-                      assistId:
-                        e.target.value === "" ? undefined : e.target.value,
-                    })
+                    updateAt(idx, { assistId: e.target.value === "" ? undefined : e.target.value })
                   }
                   disabled={assistDisabled}
                 >
@@ -201,19 +185,15 @@ export default function GoalsAssistsPanel({
 
               {/* Own Goal */}
               <div className="col-span-6 sm:col-span-1">
-                <label className="block text-sm font-medium mb-1">Own Goal</label>
+                <label className="mb-1 block text-sm font-medium">Own Goal</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     checked={ev.ownGoal}
-                    onChange={(e) =>
-                      updateAt(idx, { ownGoal: e.target.checked })
-                    }
+                    onChange={(e) => updateAt(idx, { ownGoal: e.target.checked })}
                   />
                   {ev.ownGoal ? (
-                    <span className="text-xs font-semibold text-red-600">
-                      OG
-                    </span>
+                    <span className="text-xs font-semibold text-red-600">OG</span>
                   ) : (
                     <span className="text-xs text-gray-500">—</span>
                   )}
@@ -224,9 +204,8 @@ export default function GoalsAssistsPanel({
               <div className="col-span-6 sm:col-span-1 flex justify-end">
                 <button
                   type="button"
-                  className="border rounded-md px-2 py-1.5 text-sm hover:bg-gray-50"
+                  className="rounded-md border px-2 py-2 text-sm hover:bg-gray-50"
                   onClick={() => removeAt(idx)}
-                  aria-label="Remove goal"
                 >
                   Remove
                 </button>
@@ -245,31 +224,23 @@ export default function GoalsAssistsPanel({
 
       {/* Summary */}
       {value.length > 0 && (
-        <div className="pt-3 border-t">
-          <p className="text-sm font-medium mb-1">Summary</p>
-          <ul className="text-sm space-y-1">
+        <div className="border-t pt-3">
+          <p className="mb-1 text-sm font-medium">Summary</p>
+          <ul className="space-y-1 text-sm">
             {value
               .slice()
               .sort((a, b) => a.minute - b.minute)
               .map((ev) => {
                 const sideLabel = ev.teamSide === "home" ? "Home" : "Away";
                 const pool = scorerPool(ev);
-                const scorer =
-                  pool.find((p) => p.id === ev.scorerId)?.name ?? "—";
+                const scorer = pool.find((p) => p.id === ev.scorerId)?.name ?? "—";
                 const assist = ev.assistId
                   ? assistPool(ev).find((p) => p.id === ev.assistId)?.name
                   : undefined;
                 return (
-                  <li
-                    key={`sum-${ev.id}`}
-                    className={ev.ownGoal ? "text-red-600" : ""}
-                  >
+                  <li key={`sum-${ev.id}`} className={ev.ownGoal ? "text-red-600" : ""}>
                     {sideLabel} {ev.minute}′ — {scorer}
-                    {ev.ownGoal
-                      ? " (OG)"
-                      : assist
-                      ? ` (assist: ${assist})`
-                      : ""}
+                    {ev.ownGoal ? " (OG)" : assist ? ` (assist: ${assist})` : ""}
                   </li>
                 );
               })}

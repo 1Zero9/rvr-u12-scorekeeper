@@ -26,50 +26,68 @@ export default function Page() {
   };
 
   return (
-    <form onSubmit={onSubmit} className="max-w-4xl mx-auto p-4 space-y-4">
-      <header>
-        <h1 className="text-2xl font-semibold">Record Match</h1>
-        <p className="text-sm text-gray-500">
-          Add goals & assists. Own goals pull the scorer from the opposite team.
-        </p>
-      </header>
-
-      {/* Simple match meta */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border rounded-xl p-4">
+    <main className="min-h-screen bg-gray-50 py-6">
+      <form
+        onSubmit={onSubmit}
+        className="mx-auto w-full max-w-4xl space-y-6 px-4"
+      >
+        {/* Page heading */}
         <div>
-          <label className="block text-sm font-medium mb-1">Date</label>
-          <input
-            type="date"
-            className="w-full border rounded-md px-2 py-1.5"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
+          <h1 className="text-2xl font-semibold">Record Match</h1>
+          <p className="text-sm text-gray-500">
+            Add match info, then goals and assists. Own goals pull the scorer from
+            the opposite team.
+          </p>
         </div>
-        <div className="sm:col-span-2">
-          <label className="block text-sm font-medium mb-1">Opponent</label>
-          <input
-            type="text"
-            className="w-full border rounded-md px-2 py-1.5"
-            placeholder="e.g. St. Mary’s U12"
-            value={opponent}
-            onChange={(e) => setOpponent(e.target.value)}
+
+        {/* Match Info */}
+        <section className="rounded-2xl border bg-white p-4 shadow-sm">
+          <h2 className="mb-3 text-base font-semibold">Match Info</h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div>
+              <label className="mb-1 block text-sm font-medium">Date</label>
+              <input
+                type="date"
+                className="w-full rounded-md border px-3 py-2"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="mb-1 block text-sm font-medium">Opponent</label>
+              <input
+                type="text"
+                className="w-full rounded-md border px-3 py-2"
+                placeholder="e.g. St. Mary’s U12"
+                value={opponent}
+                onChange={(e) => setOpponent(e.target.value)}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Goals & Assists */}
+        <section className="rounded-2xl border bg-white p-4 shadow-sm">
+          <h2 className="mb-3 text-base font-semibold">Goals &amp; Assists</h2>
+          <GoalsAssistsPanel
+            homeTeamId={homeTeamId}
+            awayTeamId={awayTeamId}
+            allPlayers={allPlayers}
+            value={goals}
+            onChange={setGoals}
           />
+        </section>
+
+        {/* Actions */}
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            className="rounded-xl border bg-black px-5 py-2 text-sm font-medium text-white hover:opacity-90"
+          >
+            Save Match
+          </button>
         </div>
-      </div>
-
-      <GoalsAssistsPanel
-        homeTeamId={homeTeamId}
-        awayTeamId={awayTeamId}
-        allPlayers={allPlayers}
-        value={goals}
-        onChange={setGoals}
-      />
-
-      <div className="flex justify-end">
-        <button type="submit" className="border px-4 py-2 rounded-md text-sm hover:bg-gray-50">
-          Save Match
-        </button>
-      </div>
-    </form>
+      </form>
+    </main>
   );
 }
