@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+// …(rest of your Home code, but no page-level <header> with buttons)
+
 
 type RawMatch = {
   id: string;
@@ -90,7 +91,8 @@ export default function Home() {
     <main className="mx-auto max-w-4xl p-4 space-y-6">
       {/* Header */}
 <header className="flex items-center justify-between">
-  <h1 className="text-2xl font-semibold">RVR U12 Scorekeeper</h1>
+  <h1 className="mb-2 text-2xl font-semibold">RVR U12 Scorekeeper</h1>
+
   <nav className="flex items-center gap-3">
     <Link href="/" className="text-sm underline-offset-4 hover:underline">
       Home
