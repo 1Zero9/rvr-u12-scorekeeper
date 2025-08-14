@@ -1,5 +1,6 @@
-/** @type {import('tailwindcss').Config} */
-module.exports = {
+import type { Config } from "tailwindcss";
+
+export default {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -8,15 +9,14 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Raleway", "sans-serif"], // Main font
-        body: ["Open Sans", "sans-serif"], // For body text
+        sans: ["Raleway", "sans-serif"],
+        body: ["Open Sans", "sans-serif"],
       },
       colors: {
-        primary: "#005C99", // Deep blue from your template
-        secondary: "#0099CC", // Accent light blue
-        accent: "#F5B700", // Optional yellow accent
+        background: "var(--background)",
+        foreground: "var(--foreground)",
       },
     },
   },
   plugins: [],
-};
+} satisfies Config;
