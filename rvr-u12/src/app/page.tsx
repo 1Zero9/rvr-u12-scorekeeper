@@ -33,6 +33,8 @@ export default function HomePage() {
         </Link>
       </div>
 
+<div className="bg-red-500 p-10 text-white">Tailwind test</div>
+
       <p className="mt-10 text-sm font-body">
         <a href="https://www.rvrfc.ie" className="underline">
           www.rvrfc.ie
