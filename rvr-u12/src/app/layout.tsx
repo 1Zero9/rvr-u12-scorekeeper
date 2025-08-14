@@ -12,6 +12,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${raleway.variable} ${openSans.variable}`}>
+      {/* ✅ Now using manual gradient class from globals.css */}
       <body className="font-body bg-blue-gradient text-white min-h-screen">
         {children}
       </body>
