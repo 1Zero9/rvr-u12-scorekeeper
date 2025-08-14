@@ -1,4 +1,4 @@
-import "../styles/globals.css";
+import '../styles/globals.css';
 import { Raleway, Open_Sans } from "next/font/google";
 
 const raleway = Raleway({ subsets: ["latin"], variable: "--font-heading" });
