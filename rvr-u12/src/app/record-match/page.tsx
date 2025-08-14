@@ -1,29 +1,27 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import GoalsAssistsPanel from "../../components/GoalsAssistsPanel";
-import { GoalEvent, Player } from "../../types/match";
-import { supabase } from "../../lib/supabaseClient";
-import { createMatch, insertGoals, updateMatchScore } from "../../lib/db";
+import GoalsAssistsPanel from "@/components/GoalsAssistsPanel";
+import { GoalEvent, Player } from "@/types/match";
+import { supabase } from "@/lib/supabaseClient";
+import { createMatch, insertGoals, updateMatchScore, upsertOpponentByName } from "@/lib/db";
 
 const OUR_TEAM_ID = process.env.NEXT_PUBLIC_OUR_TEAM_ID!;
 
 export default function Page() {
-  // Players (loaded from Supabase)
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [homePlayers, setHomePlayers] = useState<Player[]>([]);
+  const [awayPlayers, setAwayPlayers] = useState<Player[]>([]);
   const [loadingPlayers, setLoadingPlayers] = useState(true);
 
-  // Form state
   const [date, setDate] = useState("");
   const [opponent, setOpponent] = useState("");
   const [homeAway, setHomeAway] = useState<"home" | "away">("home");
   const [goals, setGoals] = useState<GoalEvent[]>([]);
   const [saving, setSaving] = useState(false);
 
-  // 1) Load our team’s players from Supabase
+  // Load our team’s players
   useEffect(() => {
     (async () => {
-      setLoadingPlayers(true);
       const { data, error } = await supabase
         .from("players")
         .select("id,name,shirt,team_id")
@@ -31,23 +29,63 @@ export default function Page() {
         .order("shirt", { ascending: true });
 
       if (error) {
-        console.error("Load players error:", error);
-        setPlayers([]);
+        console.error("Load home players error:", error);
+        setHomePlayers([]);
       } else {
-        const mapped: Player[] =
+        setHomePlayers(
           (data ?? []).map((p: any) => ({
             id: p.id,
             name: p.name,
             teamId: p.team_id,
             shirtNumber: p.shirt ?? undefined,
-          })) ?? [];
-        setPlayers(mapped);
+          }))
+        );
       }
-      setLoadingPlayers(false);
     })();
   }, []);
 
-  // 2) Submit: create match, insert goals, update score
+  // Load opponent players when opponent name changes
+  useEffect(() => {
+    if (!opponent.trim()) {
+      setAwayPlayers([]);
+      return;
+    }
+
+    (async () => {
+      setLoadingPlayers(true);
+
+      const opponentId = await upsertOpponentByName(opponent.trim());
+      if (!opponentId) {
+        setAwayPlayers([]);
+        setLoadingPlayers(false);
+        return;
+      }
+
+      // This assumes opponent_id in opponents table matches team_id in players
+      const { data, error } = await supabase
+        .from("players")
+        .select("id,name,shirt,team_id")
+        .eq("team_id", opponentId)
+        .order("shirt", { ascending: true });
+
+      if (error) {
+        console.error("Load opponent players error:", error);
+        setAwayPlayers([]);
+      } else {
+        setAwayPlayers(
+          (data ?? []).map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            teamId: p.team_id,
+            shirtNumber: p.shirt ?? undefined,
+          }))
+        );
+      }
+
+      setLoadingPlayers(false);
+    })();
+  }, [opponent]);
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -57,26 +95,16 @@ export default function Page() {
 
     try {
       setSaving(true);
+      const matchId = await createMatch({ date, opponentName: opponent.trim(), homeAway });
 
-      // 2a) Create the match (opponent upsert happens inside createMatch)
-      const matchId = await createMatch({
-        date,
-        opponentName: opponent.trim(),
-        homeAway,
-      });
+      const teamByPlayer = new Map([...homePlayers, ...awayPlayers].map((p) => [p.id, p.teamId]));
 
-      // Map playerId -> teamId for tallying
-      const teamByPlayer = new Map(players.map((p) => [p.id, p.teamId]));
-
-      // 2b) Compute scores and transform goal events
       let our = 0;
       let theirs = 0;
 
       const goalRows = goals.map((g) => {
         const scorerTeam = teamByPlayer.get(g.scorerId);
         const isOurPlayer = scorerTeam === OUR_TEAM_ID;
-
-        // Who gets credited on the scoreboard?
         const creditedToUs = g.ownGoal ? !isOurPlayer : isOurPlayer;
         if (creditedToUs) our += 1;
         else theirs += 1;
@@ -89,15 +117,12 @@ export default function Page() {
         };
       });
 
-      // 2c) Save goals then update match score
       if (goalRows.length > 0) {
         await insertGoals(matchId, goalRows);
       }
       await updateMatchScore(matchId, our, theirs);
 
-      // Done
       alert("Match saved!");
-      // Optional reset
       setDate("");
       setOpponent("");
       setHomeAway("home");
@@ -168,9 +193,8 @@ export default function Page() {
           ) : (
             <GoalsAssistsPanel
               homeTeamId={OUR_TEAM_ID}
-              // We don't have opponent players loaded yet; this ID is unused in saving.
-              awayTeamId="opponent-team"
-              allPlayers={players}
+              awayTeamId={awayPlayers[0]?.teamId ?? "opponent-team"}
+              allPlayers={[...homePlayers, ...awayPlayers]}
               value={goals}
               onChange={setGoals}
             />
