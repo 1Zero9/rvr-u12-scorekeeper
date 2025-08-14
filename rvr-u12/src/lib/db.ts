@@ -14,17 +14,23 @@ export async function upsertOpponentByName(name: string): Promise<string | null>
     .limit(1)
     .maybeSingle();
 
-  if (findErr) throw findErr;
+  if (findErr) {
+    console.error("Error finding opponent:", findErr);
+    throw new Error("Failed to check opponent");
+  }
   if (existing) return existing.id as string;
 
   // Insert new
   const { data: created, error: insErr } = await supabase
     .from("opponents")
-    .insert({ name: trimmed })
+    .insert([{ name: trimmed }])
     .select("id")
     .single();
 
-  if (insErr) throw insErr;
+  if (insErr) {
+    console.error("Error inserting opponent:", insErr);
+    throw new Error("Failed to add opponent");
+  }
   return created.id as string;
 }
 
@@ -58,11 +64,14 @@ export async function createMatch(input: CreateMatchInput): Promise<string> {
 
   const { data, error } = await supabase
     .from("matches")
-    .insert(payload)
+    .insert([payload])
     .select("id")
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error("Error creating match:", error);
+    throw new Error("Failed to create match");
+  }
   return data.id as string;
 }
 
@@ -87,7 +96,10 @@ export async function insertGoals(
   }));
 
   const { error } = await supabase.from("goals").insert(rows);
-  if (error) throw error;
+  if (error) {
+    console.error("Error inserting goals:", error);
+    throw new Error("Failed to insert goals");
+  }
 }
 
 /** Update match score totals */
@@ -100,5 +112,8 @@ export async function updateMatchScore(
     .from("matches")
     .update({ our_score: our, their_score: theirs })
     .eq("id", matchId);
-  if (error) throw error;
+  if (error) {
+    console.error("Error updating match score:", error);
+    throw new Error("Failed to update match score");
+  }
 }
