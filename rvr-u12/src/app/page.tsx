@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+import Link from "next/link";
+
 // …(rest of your Home code, but no page-level <header> with buttons)
 
 
