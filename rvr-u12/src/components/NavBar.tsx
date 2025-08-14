@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import Logo from "@/public/RVR.png";
+
 
 export default function NavBar() {
   const pathname = usePathname();
@@ -13,11 +13,11 @@ export default function NavBar() {
     <nav className="flex items-center justify-between px-6 py-3 bg-primaryDark">
       <Link href="/" className="flex items-center space-x-3">
         <Image
-          src={Logo}
-          alt="River Valley Rangers"
-          width={isHome ? 80 : 40}
-          height={isHome ? 80 : 40}
-          className="rounded-full"
+          src="/RVR.png"  // This is from /public
+          alt="RVR Logo"
+          width={80}
+          height={80}
+          priority
         />
         {isHome && (
           <span className="font-heading text-2xl">River Valley Rangers</span>

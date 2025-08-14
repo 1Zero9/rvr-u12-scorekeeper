@@ -2,18 +2,19 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import Logo from "@/public/RVR.png";
+
+
 
 export default function HomePage() {
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-blue-gradient text-white px-4 text-center">
       <Image
-        src={Logo}
-        alt="River Valley Rangers"
-        width={160}
-        height={160}
-        className="mb-6"
-      />
+          src="/RVR.png"  // This is from /public
+          alt="RVR Logo"
+          width={160}
+          height={160}
+          priority
+        />
       <h1 className="font-heading text-4xl font-bold">River Valley Rangers</h1>
       <p className="mt-2 font-body text-lg">Founded 1981</p>
 
