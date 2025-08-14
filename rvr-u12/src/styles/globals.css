@@ -2,16 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&family=Open+Sans:wght@400;600&display=swap');
 
 /* Light theme variables */
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --primary: #005C99;  /* Deep blue */
-  --secondary: #0099CC; /* Light blue */
-  --accent: #F5B700;   /* Yellow accent */
+  --primary: #005C99;
+  --secondary: #0099CC;
+  --accent: #F5B700;
 }
 
 /* Dark mode overrides */
@@ -23,7 +22,7 @@
 }
 
 html, body {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--font-body, 'Open Sans', sans-serif);
   background-color: var(--background);
   color: var(--foreground);
   margin: 0;
