@@ -21,14 +21,27 @@ export default function HomePage() {
     const fetchMatches = async () => {
       const { data, error } = await supabase
         .from("matches")
-        .select("id, date, home_away, our_score, their_score, opponents(name)")
-        .order("date", { ascending: false })
-        .limit(5);
+        .select(
+          `
+          id,
+          date,
+          home_away,
+          our_score,
+          their_score,
+          opponents ( name )
+        `
+        )
+        .order("date", { ascending: false });
 
       if (error) {
         console.error(error);
       } else {
-        setMatches(data || []);
+        // Convert opponents array → single object
+        const transformed = (data || []).map((match) => ({
+          ...match,
+          opponents: match.opponents?.[0] || null,
+        }));
+        setMatches(transformed);
       }
       setLoading(false);
     };
@@ -40,29 +53,28 @@ export default function HomePage() {
     <div>
       <h1 className="text-2xl font-bold mb-4">RVR U12 Scorekeeper</h1>
 
-      {/* Stats Bar */}
-      <div className="flex gap-4 mb-4">
-        <div className="px-4 py-2 border rounded-full">
-          <span className="text-green-600 font-bold">1</span> Played
+      {/* Stats bar placeholder */}
+      <div className="flex gap-4 mb-6">
+        <div className="px-3 py-1 border rounded-full text-center">
+          1 Played
         </div>
-        <div className="px-4 py-2 border rounded-full">
-          <span className="text-green-600 font-bold">1-0-0</span> W-D-L
+        <div className="px-3 py-1 border rounded-full text-center">
+          1-0-0 W-D-L
         </div>
-        <div className="px-4 py-2 border rounded-full">
-          <span className="text-green-600 font-bold">2/1</span> GF/GA
+        <div className="px-3 py-1 border rounded-full text-center">
+          2/1 GF/GA
         </div>
-        <div className="px-4 py-2 border rounded-full">
-          <span className="text-green-600 font-bold">1</span> GD
-        </div>
-        <div className="px-4 py-2 border rounded-full">
-          <span className="text-green-600 font-bold">100</span> Win %
+        <div className="px-3 py-1 border rounded-full text-center">1 GD</div>
+        <div className="px-3 py-1 border rounded-full text-center">
+          100 Win %
         </div>
       </div>
 
-      {/* Recent Matches */}
-      <h2 className="text-lg font-semibold mb-2">Recent Matches</h2>
+      {/* Matches list */}
       {loading ? (
         <p>Loading...</p>
+      ) : matches.length === 0 ? (
+        <p>No matches found.</p>
       ) : (
         <div className="space-y-4">
           {matches.map((match) => (
@@ -72,20 +84,15 @@ export default function HomePage() {
             >
               <div>
                 <p className="font-medium">
-                  {new Date(match.date).toLocaleDateString("en-GB", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                  })}{" "}
-                  · {match.home_away}
+                  {match.date} · {match.home_away}
                 </p>
                 <p className="text-sm text-blue-600">
                   vs {match.opponents?.name || "Unknown"}
                 </p>
               </div>
-              <p className="text-lg font-bold">
-                {match.our_score}–{match.their_score}
-              </p>
+              <div className="text-lg font-bold">
+                {match.our_score} – {match.their_score}
+              </div>
             </div>
           ))}
         </div>
