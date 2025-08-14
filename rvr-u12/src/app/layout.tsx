@@ -1,17 +1,19 @@
 import "./globals.css";
-import NavBar from "../components/NavBar";
+import { Raleway, Open_Sans } from "next/font/google";
+
+const raleway = Raleway({ subsets: ["latin"], variable: "--font-heading" });
+const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-body" });
 
 export const metadata = {
-  title: "RVR U12 Scorekeeper",
-  description: "Record and review U12 match stats",
+  title: "RVR Matchday",
+  description: "River Valley Rangers match recording app",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="bg-gray-50">
-        <NavBar />
-        <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
+    <html lang="en" className={`${raleway.variable} ${openSans.variable}`}>
+      <body className="font-body bg-blue-gradient text-white min-h-screen">
+        {children}
       </body>
     </html>
   );

@@ -1,62 +1,42 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
+import Logo from "@/public/RVR.png";
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-gray-50 py-10 px-6">
-      <div className="mx-auto max-w-4xl space-y-8">
-        {/* Heading */}
-        <header className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">RVR Matchday</h1>
-          <p className="mt-2 text-gray-600">
-            Welcome to the match management dashboard.
-          </p>
-        </header>
+    <main className="flex flex-col items-center justify-center min-h-screen bg-blue-gradient text-white px-4 text-center">
+      <Image
+        src={Logo}
+        alt="River Valley Rangers"
+        width={160}
+        height={160}
+        className="mb-6"
+      />
+      <h1 className="font-heading text-4xl font-bold">River Valley Rangers</h1>
+      <p className="mt-2 font-body text-lg">Founded 1981</p>
 
-        {/* Links / Actions */}
-        <section className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <Link
-            href="/record-match"
-            className="rounded-xl border bg-white p-6 shadow hover:shadow-md transition"
-          >
-            <h2 className="text-xl font-semibold">Record Match</h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Add match info, goals, and assists.
-            </p>
-          </Link>
-
-          <Link
-            href="/matches"
-            className="rounded-xl border bg-white p-6 shadow hover:shadow-md transition"
-          >
-            <h2 className="text-xl font-semibold">View Matches</h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Browse match history and stats.
-            </p>
-          </Link>
-
-          <Link
-            href="/players"
-            className="rounded-xl border bg-white p-6 shadow hover:shadow-md transition"
-          >
-            <h2 className="text-xl font-semibold">Manage Players</h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Add, edit, or remove players.
-            </p>
-          </Link>
-
-          <Link
-            href="/opponents"
-            className="rounded-xl border bg-white p-6 shadow hover:shadow-md transition"
-          >
-            <h2 className="text-xl font-semibold">Manage Opponents</h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Maintain opponent team info.
-            </p>
-          </Link>
-        </section>
+      <div className="mt-8 space-x-4">
+        <Link
+          href="/record-match"
+          className="bg-white text-primary font-heading px-6 py-3 rounded-lg shadow hover:opacity-90 transition"
+        >
+          Record Match
+        </Link>
+        <Link
+          href="/matches"
+          className="bg-accent text-white font-heading px-6 py-3 rounded-lg shadow hover:opacity-90 transition"
+        >
+          View Matches
+        </Link>
       </div>
+
+      <p className="mt-10 text-sm font-body">
+        <a href="https://www.rvrfc.ie" className="underline">
+          www.rvrfc.ie
+        </a>
+      </p>
     </main>
   );
 }

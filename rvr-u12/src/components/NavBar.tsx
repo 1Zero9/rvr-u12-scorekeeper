@@ -1,31 +1,35 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
+import Logo from "@/public/RVR.png";
 
 export default function NavBar() {
   const pathname = usePathname();
-  const is = (p: string) => pathname === p;
+  const isHome = pathname === "/";
 
   return (
-    <header className="border-b bg-white/80 backdrop-blur">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-        <Link href="/" className="text-lg font-semibold">RVR U12</Link>
-        <nav className="flex items-center gap-2">
-          <Link
-            href="/"
-            className={`rounded-md px-3 py-2 text-sm ${is("/") ? "bg-gray-900 text-white" : "hover:bg-gray-100"}`}
-          >
-            Home
-          </Link>
-          <Link
-            href="/record-match"
-            className={`rounded-md px-3 py-2 text-sm ${is("/record-match") ? "bg-orange-500 text-white" : "bg-orange-500/90 text-white hover:opacity-90"}`}
-          >
-            Record Match
-          </Link>
-        </nav>
+    <nav className="flex items-center justify-between px-6 py-3 bg-primaryDark">
+      <Link href="/" className="flex items-center space-x-3">
+        <Image
+          src={Logo}
+          alt="River Valley Rangers"
+          width={isHome ? 80 : 40}
+          height={isHome ? 80 : 40}
+          className="rounded-full"
+        />
+        {isHome && (
+          <span className="font-heading text-2xl">River Valley Rangers</span>
+        )}
+      </Link>
+
+      <div className="flex space-x-4 font-body text-sm">
+        <Link href="/record-match" className="hover:underline">Record Match</Link>
+        <Link href="/matches" className="hover:underline">Matches</Link>
+        <Link href="/players" className="hover:underline">Players</Link>
+        <Link href="/opponents" className="hover:underline">Opponents</Link>
       </div>
-    </header>
+    </nav>
   );
 }
